@@ -2,12 +2,14 @@ name: Auto Runner for EX-001
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # يعمل تلقائياً كل 6 ساعات
-  workflow_dispatch: # يتيح لك تشغيله يدوياً للتجربة
+    # يعمل تلقائياً كل 3 ساعات (الساعة 00:00، 03:00، 06:00... إلخ بتوقيت UTC)
+    - cron: '0 */3 * * *'
+  workflow_dispatch: # يتيح لك تشغيله يدوياً من زر في GitHub للتجربة
 
 jobs:
   run-private-scraper:
     runs-on: ubuntu-latest
+    # مهلة 90 دقيقة، لأن السكريبت مصمم ليعمل داخلياً لمدة 25-30 دقيقة ثم يتوقف بأمان
     timeout-minutes: 90
     
     steps:
@@ -15,9 +17,10 @@ jobs:
       - name: Checkout Private Repository
         uses: actions/checkout@v4
         with:
-          repository: 'FSLBOT/EX-001' # اسم مستخدمك ومستودعك الخاص
+          # ⚠️ تأكد أن هذا هو اسم مستخدمك واسم مستودعك الخاص
+          repository: 'FSLBOT/EX-001' 
           token: ${{ secrets.PRIVATE_REPO_PAT }}
-          path: './core-code'
+          path: './core-code' # يتم وضع الكود في مجلد فرعي
 
       # 2. إعداد Node.js
       - name: Setup Node.js
@@ -31,9 +34,10 @@ jobs:
           cd ./core-code
           npm install
 
-      # 4. تشغيل السكريبت الأساسي
+      # 4. تشغيل السكريبت الأساسي (محرك التدوير)
       - name: Run Scraper
         env:
+          # تمرير المفاتيح السرية التي أضفتها في إعدادات هذا المستودع العام
           TURSO_URL: ${{ secrets.TURSO_URL }}
           TURSO_TOKEN: ${{ secrets.TURSO_TOKEN }}
           SCRAPINGANT_API_KEY: ${{ secrets.SCRAPINGANT_API_KEY }}
